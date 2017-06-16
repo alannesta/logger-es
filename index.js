@@ -1,7 +1,7 @@
 var winston = require('winston');
 var os = require('os');
 var path = require('path');
-var elastic = require('./elasticsearch-connector');
+var elastic = require('./elastic-connector');
 
 function Logger(appName) {
 	var logger = new (winston.Logger)({
@@ -28,7 +28,7 @@ function Logger(appName) {
 			// index to elastic search
 			elastic.index({
 				index: 'applog',
-				type: 'fetcher',
+				type: appName,
 				body: {
 					timestamp: new Date(),
 					message: message,
