@@ -6,7 +6,7 @@ var client = new elasticsearch.Client(config);
 function getElasticConfig(env) {
 	if (env === 'production') {
 		return {
-			host: process.env.ELASTICSEARCH_HOST ? process.env.ELASTICSEARCH_HOST + ':' + process.env.ELASTICSEARCH_PORT : 'localhost:9200',
+			host: getElasticUrl(),
 			log: {
 				type: 'file',
 				level: 'info',
@@ -15,14 +15,14 @@ function getElasticConfig(env) {
 		};
 	} else if (env === 'docker') {
 		return {
-			host: process.env.ELASTICSEARCH_HOST ? process.env.ELASTICSEARCH_HOST + ':9200' : 'localhost:9200',
+			host: getElasticUrl(),
 			log: 'info'
 		};
 	}
 
 	// development
 	return {
-		host: process.env.ELASTICSEARCH_HOST ? process.env.ELASTICSEARCH_HOST + ':9200' : 'localhost:9200',
+		host: getElasticUrl(),
 		log: 'info'
 	};
 }
@@ -34,7 +34,7 @@ function getElasticUrl() {
 		return host;
 	}
 	// in this case, elastic server is running remotely under nginx proxy
-	if (process.env.ELASTIC_MODE && process.env.ELASTICSEARCH_MODE === 'proxy') {
+	if (process.env.ELASTICSEARCH_MODE && process.env.ELASTICSEARCH_MODE === 'proxy') {
 		host = process.env.ELASTICSEARCH_HOST;
 	} else {
 		// assume elastic search is running locally in this case
