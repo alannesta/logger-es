@@ -89,6 +89,8 @@ function Logger(appName) {
 			}),
 		];
 	}
+
+	return logger;
 }
 
 
