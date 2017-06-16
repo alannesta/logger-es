@@ -30,7 +30,7 @@ function getElasticConfig(env) {
 function getElasticUrl() {
 	// default to local elasticsearch instance
 	let host = 'localhost:9200';
-	if (process.env.ELASTICSEARCH_HOST === 'undefined') {
+	if (process.env.ELASTICSEARCH_HOST === undefined) {
 		return host;
 	}
 	// in this case, elastic server is running remotely under nginx proxy

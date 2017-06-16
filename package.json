@@ -1,5 +1,5 @@
 {
-  "name": "es-logger",
+  "name": "service-logger-es",
   "version": "1.0.0",
   "description": "logger used by several services",
   "main": "index.js",
