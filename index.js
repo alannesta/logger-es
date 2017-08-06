@@ -2,6 +2,7 @@ var winston = require('winston');
 var os = require('os');
 var path = require('path');
 var elastic = require('./elastic-connector');
+var elasticIns2 = require('./instance2-connector');
 
 function Logger(appName) {
 	var logger = new (winston.Logger)({
@@ -27,6 +28,21 @@ function Logger(appName) {
 
 			// index to elastic search
 			elastic.index({
+				index: 'applog',
+				type: appName,
+				body: {
+					timestamp: new Date(),
+					message: message,
+					level: method
+				}
+			}, (error, response) => {
+				if (error) {
+					console.log('log to elastic error ---> ', error);
+				}
+			});
+
+			// cc instance2
+			elasticIns2.index({
 				index: 'applog',
 				type: appName,
 				body: {
