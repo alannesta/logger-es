@@ -3,7 +3,7 @@ var os = require('os');
 var path = require('path');
 var elasticConnector = require('./elastic-connector');
 
-function Logger(appName, env = 'development', logLevel, logFileLocation, elasticHost = 'localhost:9200') {
+function Logger(appName, env = 'development', logLevel = 'info', logFileLocation, elasticHost = 'localhost:9200') {
 	var logger = new (winston.Logger)({
 		transports: getTransportConfig(env, logLevel, logFileLocation),
 	});
