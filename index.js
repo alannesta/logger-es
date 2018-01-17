@@ -1,13 +1,14 @@
 var winston = require('winston');
 var os = require('os');
 var path = require('path');
-var elastic = require('./elastic-connector');
-var elasticIns2 = require('./instance2-connector');
+var elasticConnector = require('./elastic-connector');
 
-function Logger(appName) {
+function Logger(appName, env = 'development', logLevel, logFileLocation, elasticHost = 'localhost:9200') {
 	var logger = new (winston.Logger)({
-		transports: getTransportConfig(process.env.NODE_ENV),
+		transports: getTransportConfig(env, logLevel, logFileLocation),
 	});
+
+	const elasticClient = elasticConnector(elasticHost);
 
 	const wrappedMethods = ['info', 'error'];
 
@@ -27,22 +28,7 @@ function Logger(appName) {
 			unwrapped.apply(null, args);
 
 			// index to elastic search
-			elastic.index({
-				index: 'applog',
-				type: appName,
-				body: {
-					timestamp: new Date(),
-					message: message,
-					level: method
-				}
-			}, (error, response) => {
-				if (error) {
-					console.log('log to elastic error ---> ', error);
-				}
-			});
-
-			// cc instance2
-			elasticIns2.index({
+			elasticClient.index({
 				index: 'applog',
 				type: appName,
 				body: {
@@ -58,17 +44,17 @@ function Logger(appName) {
 		};
 	});
 
-	function getTransportConfig(env) {
+	function getTransportConfig(env, logLevel, logFileLocation) {
 		if (env === 'production') {
 			return [
 				new (winston.transports.Console)({
-					level: process.env.LOG_LEVEL || 'info',
+					level: logLevel || 'info',
 					handleExceptions: true,
 					humanReadableUnhandledException: true,
 					stderrLevels: ['error'],	// this will affect pm2 logs on prod
 				}),
 				new (winston.transports.File)({
-					filename: process.env.SERVER_LOG_FILE || path.join(os.homedir(), 'logs/91lister-fetch.log'),
+					filename: logFileLocation || path.join(os.homedir(), 'logs/91lister-fetch.log'),
 					level: 'info',
 					json: false,
 					handleExceptions: true,
