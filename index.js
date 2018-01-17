@@ -13,7 +13,6 @@ function Logger(appName, env = 'development', logLevel = 'info', logFileLocation
 	const wrappedMethods = ['info', 'error'];
 
 	wrappedMethods.forEach((method) => {
-
 		const unwrapped = logger[method];
 		logger[method] = function(...args) {
 			let message = '';
