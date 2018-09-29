@@ -12,36 +12,40 @@ function Logger(appName, env = 'development', logLevel = 'info', logFileLocation
 
 	const wrappedMethods = ['info', 'error'];
 
-	wrappedMethods.forEach((method) => {
-		const unwrapped = logger[method];
-		logger[method] = function(...args) {
-			let message = '';
+	// only send to elasticsearch on non dev environment
+	if (env != 'development') {
+		wrappedMethods.forEach((method) => {
+			const unwrapped = logger[method];
+			logger[method] = function(...args) {
+				let message = '';
 
-			if (args.length > 1) {
-				message = args[0] + JSON.stringify(args[1]);
-			} else {
-				message = args[0];
-			}
-
-			// call the original logger method
-			unwrapped.apply(null, args);
-
-			// index to elastic search
-			elasticClient.index({
-				index: 'applog',
-				type: appName,
-				body: {
-					timestamp: new Date(),
-					message: message,
-					level: method
+				if (args.length > 1) {
+					message = args[0] + JSON.stringify(args[1]);
+				} else {
+					message = args[0];
 				}
-			}, (error, response) => {
-				if (error) {
-					console.log('log to elastic error ---> ', error);
-				}
-			});
-		};
-	});
+
+				// call the original logger method
+				unwrapped.apply(null, args);
+
+				// index to elastic search
+				elasticClient.index({
+					index: 'applog',
+					type: appName,
+					body: {
+						timestamp: new Date(),
+						message: message,
+						level: method
+					}
+				}, (error, response) => {
+					if (error) {
+						console.log('service-logger-es::Error writing log to elasticsearch ---> ', error.message);
+					}
+				});
+			};
+		});
+	}
+
 
 	function getTransportConfig(env, logLevel, logFileLocation) {
 		if (env === 'production') {
@@ -50,7 +54,7 @@ function Logger(appName, env = 'development', logLevel = 'info', logFileLocation
 					level: logLevel || 'info',
 					handleExceptions: true,
 					humanReadableUnhandledException: true,
-					stderrLevels: ['error'],	// this will affect pm2 logs on prod
+					stderrLevels: ['error']	// this will affect pm2 logs on prod
 				}),
 				new (winston.transports.File)({
 					filename: logFileLocation || path.join(os.homedir(), 'logs/91lister-fetch.log'),
@@ -58,18 +62,18 @@ function Logger(appName, env = 'development', logLevel = 'info', logFileLocation
 					json: false,
 					handleExceptions: true,
 					humanReadableUnhandledException: true,
-					maxsize: 500000,
+					maxsize: 500000
 				}),
 			];
 		} else if (env === 'docker') {
 			// do not write to logs on docker
 			return [
 				new (winston.transports.Console)({
-					level: 'debug',
+					level: logLevel || 'debug',
 					handleExceptions: true,
 					humanReadableUnhandledException: true,
-					stderrLevels: ['error'],
-				}),
+					stderrLevels: ['error']
+				})
 			];
 		}
 
@@ -78,16 +82,8 @@ function Logger(appName, env = 'development', logLevel = 'info', logFileLocation
 				level: 'debug',
 				handleExceptions: true,
 				humanReadableUnhandledException: true,
-				stderrLevels: ['error'],	// this will affect pm2 logs on prod
-			}),
-			new (winston.transports.File)({
-				filename: path.join(os.homedir(), 'logs/91lister-fetch.log'),
-				level: 'debug',
-				handleExceptions: true,
-				humanReadableUnhandledException: true,
-				maxsize: 500000,
-				json: false,
-			}),
+				stderrLevels: ['error']	// this will affect pm2 logs on prod
+			})
 		];
 	}
 
