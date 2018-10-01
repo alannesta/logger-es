@@ -71,6 +71,7 @@ function Logger(appName, env = 'development', logLevel = 'info', logFileLocation
 				new (winston.transports.Console)({
 					level: logLevel || 'debug',
 					handleExceptions: true,
+					json: false,
 					humanReadableUnhandledException: true,
 					stderrLevels: ['error']
 				})
@@ -81,6 +82,7 @@ function Logger(appName, env = 'development', logLevel = 'info', logFileLocation
 			new (winston.transports.Console)({
 				level: 'debug',
 				handleExceptions: true,
+				json: false,
 				humanReadableUnhandledException: true,
 				stderrLevels: ['error']	// this will affect pm2 logs on prod
 			})
